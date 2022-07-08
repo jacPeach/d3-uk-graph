@@ -1,0 +1,34 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 2em;
+    letter-spacing: -0.011em;
+    font-family: 'Inter var', sans-serif;
+    font-size: 16px;
+    color: #34495e;
+    background: #f8f9fa;
+  }
+
+#map {
+    stroke-width: 1px;
+    stroke: black;
+}
+
+.county {
+    stroke: black;
+    stroke-width: 0.5px;
+}
+
+.county:hover {
+    fill: gray
+}
+
+.link {
+    stroke: black;
+    stroke-width: 0.2px;
+}
+
+#tooltip {
+    margin-left: 25%;
+}
