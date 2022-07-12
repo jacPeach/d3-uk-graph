@@ -1,5 +1,5 @@
-const minSize = 2;
-const maxSize = 15;
+const minSize = d3.select("#min-size-input");
+const maxSize = d3.select("#max-size-input");
 const metric = "growth";
 
 async function createGraph() {
@@ -33,9 +33,10 @@ async function createGraph() {
   };
   const absMetricAccessor = (d) => Math.abs(metricAccessor(d));
   const rScale = d3
-    .scaleLinear()
+    .scalePow()
+    .exponent(2)
     .domain(d3.extent(lads, absMetricAccessor))
-    .range([minSize, maxSize]);
+    .range([minSize.property("value"), maxSize.property("value")]);
   const rAccessor = (d) => rScale(absMetricAccessor(d));
   const rSetter = (d, fac) => {
     ladVals[d.properties.LAD21CD] = String(metricAccessor(d) * fac);
@@ -72,10 +73,17 @@ async function createGraph() {
     .precision(0.1);
   const pathGenerator = d3.geoPath(projection);
 
-  lads.forEach((d) => {
-    d.x = projection(coordAccessor(d))[0];
-    d.y = projection(coordAccessor(d))[1];
-  });
+  function resetCoords() {
+    lads.forEach((d) => {
+      d.x = projection(coordAccessor(d))[0];
+      d.y = projection(coordAccessor(d))[1];
+    });
+    map.selectAll("circle").remove();
+    rScale.range([minSize.property("value"), maxSize.property("value")]);
+    forceCollide.initialize(simulation.nodes());
+    simulation.alpha(1).restart();
+  }
+  const resetButton = d3.select("#reset-map").on("click", resetCoords);
 
   // Draw the canvas
   const wrapper = d3
@@ -89,18 +97,26 @@ async function createGraph() {
       "transform",
       `translate(${dimensions.margin.left}px, ${dimensions.margin.top}px`
     );
+  const background = bounds
+    .append("rect")
+    .attr("width", dimensions.boundedWidth)
+    .attr("height", dimensions.boundedHeight)
+    .attr("class", "background");
   const map = bounds.append("g");
+  const tooltip = d3
+    .select("#tooltip-div")
+    .style("top", document.getElementById("map").offsetTop + "px")
+    .style("left", document.getElementById("map").offsetLeft - 150 + "px");
   const label = d3.select("#tooltip");
 
+  const forceCollide = d3
+    .forceCollide()
+    .radius((d) => rAccessor(d))
+    .strength(1);
   const simulation = d3
     .forceSimulation(lads)
-    .force(
-      "collide",
-      d3
-        .forceCollide()
-        .radius((d) => rAccessor(d))
-        .strength(1)
-    )
+    .alphaDecay(0.2)
+    .force("collide", forceCollide)
     .force(
       "link",
       d3
@@ -108,11 +124,14 @@ async function createGraph() {
         .links(links)
         .id((d) => d.properties.LAD21CD)
     )
-    .on("tick", ticked);
+    .on("tick", ticked)
+    .on("end", fix)
+    .stop();
+  resetCoords();
 
   function drag(simulation) {
     function dragstarted(event) {
-      if (!event.active) simulation.alphaTarget(0.3).restart();
+      if (!event.active) simulation.alphaTarget(0.1).restart();
       event.subject.fx = event.subject.x;
       event.subject.fy = event.subject.y;
     }
@@ -123,7 +142,7 @@ async function createGraph() {
     }
 
     function dragended(event) {
-      if (!event.active) simulation.alphaTarget(0);
+      if (!event.active) simulation.alphaTarget(0).velocityDecay(0.5);
       event.subject.fx = null;
       event.subject.fy = null;
     }
@@ -133,6 +152,13 @@ async function createGraph() {
       .on("start", dragstarted)
       .on("drag", dragged)
       .on("end", dragended);
+  }
+
+  function fix() {
+    // simulation.nodes().forEach((node) => {
+    //   node.fx = node.x;
+    //   node.fy = node.y;
+    // });
   }
 
   function ticked() {
@@ -160,18 +186,14 @@ async function createGraph() {
             .attr("class", "county")
             .on("mouseenter", onHover)
             .on("mouseout", onExit)
-            .call(drag(simulation)),
+            .call(drag(simulation))
+            .transition()
+            .duration((d) => rAccessor(d) * 100)
+            .attr("r", (d) => rAccessor(d)),
         (update) => {
           update
-            .attr("cx", (d) => {
-              // console.log(rAccessor(d));
-              return d.x;
-            })
+            .attr("cx", (d) => d.x)
             .attr("cy", (d) => d.y)
-            .attr("r", (d) => {
-              // console.log(d);
-              return rAccessor(d);
-            })
             .attr("fill", (d) => {
               if (metricAccessor(d) > 0) {
                 return "green";
@@ -186,17 +208,22 @@ async function createGraph() {
   }
 
   function onHover(e, d) {
-    rSetter(d, 2);
+    console.log(rAccessor(d));
+    rSetter(d, 1.2);
+    console.log(rAccessor(d));
     label.text(
       ladName[d.properties.LAD21CD] +
         ": " +
-        Math.round(metricAccessor(d) * 100) +
+        Math.round((metricAccessor(d) / 2) * 100) +
         "%"
     );
-    // simulation.alphaTarget(0.1).restart();
+    forceCollide.initialize(simulation.nodes());
+    simulation.alphaTarget(0.1).restart();
   }
   function onExit(e, d) {
-    rSetter(d, 0.5);
+    rSetter(d, 1 / 1.2);
+    forceCollide.initialize(simulation.nodes());
+    simulation.alphaTarget(0).velocityDecay(0.5);
   }
 }
 
