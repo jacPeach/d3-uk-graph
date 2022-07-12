@@ -7,8 +7,30 @@
 </head>
 
 <body>
+    <div class="description">
+        <h2 class="description-header">UK Local Authority Population Growth</h2>
+        <p class="description-text">
+            Population growth of local authority districts in England & Wales between
+             the 2011 census and the recent 2021 census.
+            <br>
+            ONS 2021 Census Results - <a href="https://census.gov.uk/census-2021-results">https://census.gov.uk/census-2021-results</a>
+            <br><br>
+            Click and drag to move points around
+        </p>
+    </div>
+    <br class="divider">
+    <div class="controls">
+        <label for="min-size-input">Minimum Radius (px)</label>
+        <input type="text" id="min-size-input" value="3">
+        <label for="max-size-input">Maximum Radius (px)</label>
+        <input type="text" id="max-size-input" value="25">
+        <button id="reset-map">Reset Map</button>
+    </div>
+    <div id="tooltip-div" style="width: 150px">
+        <p class="tooltip" style="font-weight: bold;">Growth</p>
+        <p class="tooltip" id="tooltip">(Hover to select)</p>
+    </div>
     <div id="map"></div>
-    <div id="tooltip-div"><p id="tooltip"></p></div>
 </body>
 
 <script src="https://d3js.org/d3.v7.min.js"></script>

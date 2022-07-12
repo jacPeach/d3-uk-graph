@@ -8,11 +8,40 @@ body {
     font-size: 16px;
     color: #34495e;
     background: #f8f9fa;
+    background-color: rgb(228, 228, 228);
   }
+
+.description {
+    background-color: darkgray;
+    stroke: black;
+    stroke-width: 1px;
+    padding-left: 25px;
+    padding-right: 25px;
+    margin: 10px;
+    border-style: solid;
+}
+
+.divider {
+    border-top: dashed;
+}
+
+.description-header {
+    font-weight: bold;
+    font-variant-caps: all-small-caps;
+}
+
+.description-text {
+    font-size: 15px;
+}
+
+.controls {
+    align-items: stretch;
+}
 
 #map {
     stroke-width: 1px;
     stroke: black;
+    margin-left: 20%;
 }
 
 .county {
@@ -21,7 +50,7 @@ body {
 }
 
 .county:hover {
-    fill: gray
+    fill:darkcyan
 }
 
 .link {
@@ -29,6 +58,23 @@ body {
     stroke-width: 0.2px;
 }
 
-#tooltip {
-    margin-left: 25%;
+#tooltip-div {
+    position: absolute;
+    margin-top: 25px;
+    padding-top: 2px;
+    padding-bottom: 5px;
+    border-style: solid;
+    border-width: 0.5px;
+    background-color: white;
+}
+
+.tooltip {
+    /* margin-left: 25%; */
+    text-align: center;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.background {
+    fill: rgb(187, 186, 186);
 }
